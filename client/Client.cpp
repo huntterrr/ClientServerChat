@@ -4,8 +4,9 @@ enum class msg_type : int {
 	JoinServer,
 	ServerAccept,
 	ServerDeny,
+	ServerPing,
 	MessageAll,
-	ServerMsg,
+	ServerMessage,
 	PassString
 };
 
@@ -22,7 +23,7 @@ public:
 		std::cout << "Input name: ";
 		std::cin.get(user_name.data(), user_name.size());
 		std::cin.clear();
-		std::wcin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
+		std::cin.ignore(std::numeric_limits<std::streamsize>::max(), '\n');
 
 		net::message<msg_type> msg;
 		msg.header.id = msg_type::JoinServer;
@@ -30,7 +31,7 @@ public:
 		Send(msg);
 	}
 
-	void send_msg(std::wstring &__data) {
+	void Send_msg(std::string& __data) {
 		net::message<msg_type> msg;
 		msg.header.id = msg_type::PassString;
 		msg.header.name = user_name;
@@ -40,7 +41,7 @@ public:
 		Send(msg);
 	}
 
-public: 
+public:
 	std::array<char, 256> user_name{};
 };
 
@@ -60,20 +61,20 @@ int main() {
 
 	bool quit = 0;
 	while (!quit) {
-		std::wstring buf;
+		std::string buf;
 		std::cout << "> ";
-		getline(std::wcin, buf);
-		if (buf == L"exit") {
+		getline(std::cin, buf);
+		if (buf == "exit") {
 			quit = 1;
 		}
-		else if (buf == L"message all") {
+		else if (buf == "message all") {
 			c.message_all();
 		}
 		else {
-			c.send_msg(buf);
+			c.Send_msg(buf);
 		}
 		buf.clear();
-		std::this_thread::sleep_for(std::chrono::microseconds(5));
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		if (c.is_connected()) {
 			if (!c.get_in_comming().empty()) {
 				auto msg = c.get_in_comming().pop_front().msg;
@@ -82,7 +83,7 @@ int main() {
 					std::cout << "Server Accepted Connection\n";
 					break;
 				}
-				case msg_type::ServerMsg: {
+				case msg_type::ServerMessage: {
 					//uint32_t client_id;
 					//msg >> client_id;
 					std::cout << "Hello from [" /*<< client_id*/ << "]\n";
